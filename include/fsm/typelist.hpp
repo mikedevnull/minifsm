@@ -48,4 +48,17 @@ struct IndexOf<TypeList<>, T> {
   static constexpr int value = -1;
 };
 
+template <typename TL>
+struct Length;
+
+template <typename Head, typename... Tail>
+struct Length<TypeList<Head, Tail...>> {
+  static constexpr unsigned int value = Length<TypeList<Tail...>>::value + 1;
+};
+
+template <>
+struct Length<TypeList<>> {
+  static constexpr unsigned int value = 0;
+};
+
 }  // namespace fsm
