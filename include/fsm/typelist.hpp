@@ -9,7 +9,7 @@ struct TypeList {
   static constexpr auto size = sizeof...(Types);
 };
 
-template <typename TypeList, unsigned int N>
+template <typename TypeList, auto N>
 struct type_at_impl;
 
 template <typename Head, typename... Tail>
@@ -17,13 +17,13 @@ struct type_at_impl<TypeList<Head, Tail...>, 0> {
   using type = Head;
 };
 
-template <typename Head, typename... Tail, unsigned int N>
+template <typename Head, typename... Tail, auto N>
 struct type_at_impl<TypeList<Head, Tail...>, N> {
   static_assert(N < sizeof...(Tail) + 1, "N out of range");
   using type = typename type_at_impl<TypeList<Tail...>, N - 1>::type;
 };
 
-template <typename TL, unsigned int N>
+template <typename TL, auto N>
 using type_at = typename type_at_impl<TL, N>::type;
 
 template <typename TypeList, typename TargetState>
