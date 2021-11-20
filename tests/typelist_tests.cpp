@@ -10,22 +10,52 @@ TEST_CASE("calculate length of typelist", "[meta]") {
   using TL1 = fsm::TypeList<int, float, Foo>;
   using TL2 = fsm::TypeList<int, int>;
   using TL3 = fsm::TypeList<>;
-  STATIC_REQUIRE(fsm::Length<TL1>::value == 3);
-  STATIC_REQUIRE(fsm::Length<TL2>::value == 2);
-  STATIC_REQUIRE(fsm::Length<TL3>::value == 0);
+  STATIC_REQUIRE(TL1::size == 3);
+  STATIC_REQUIRE(TL2::size == 2);
+  STATIC_REQUIRE(TL3::size == 0);
 }
 
 TEST_CASE("get type by index from typelist", "[meta]") {
   using TL = fsm::TypeList<int, float, Foo>;
-  STATIC_REQUIRE(std::is_same<fsm::TypeAt<TL, 0>::type, int>::value);
-  STATIC_REQUIRE(std::is_same<fsm::TypeAt<TL, 1>::type, float>::value);
-  STATIC_REQUIRE(std::is_same<fsm::TypeAt<TL, 2>::type, Foo>::value);
+  STATIC_REQUIRE(std::is_same<fsm::type_at<TL, 0>, int>::value);
+  STATIC_REQUIRE(std::is_same<fsm::type_at<TL, 1>, float>::value);
+  STATIC_REQUIRE(std::is_same<fsm::type_at<TL, 2>, Foo>::value);
 }
 
 TEST_CASE("get index of type from typelist", "[meta]") {
   using TL = fsm::TypeList<int, float, Foo, int>;
-  STATIC_REQUIRE(fsm::IndexOf<TL, int>::value == 0);
-  STATIC_REQUIRE(fsm::IndexOf<TL, float>::value == 1);
-  STATIC_REQUIRE(fsm::IndexOf<TL, Foo>::value == 2);
-  STATIC_REQUIRE(fsm::IndexOf<TL, double>::value == -1);
+  STATIC_REQUIRE(fsm::index_of<TL, int> == 0);
+  STATIC_REQUIRE(fsm::index_of<TL, float> == 1);
+  STATIC_REQUIRE(fsm::index_of<TL, Foo> == 2);
+  STATIC_REQUIRE(fsm::index_of<TL, double> == -1);
+}
+
+TEST_CASE("check if type exists in typelist", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo, int>;
+  STATIC_REQUIRE(fsm::has_type<TL, int>);
+  STATIC_REQUIRE(fsm::has_type<TL, float>);
+  STATIC_REQUIRE(fsm::has_type<TL, Foo>);
+  STATIC_REQUIRE_FALSE(fsm::has_type<TL, double>);
+}
+
+TEST_CASE("append types to typelist", "[meta]") {
+  using TL0 = fsm::TypeList<>;
+  using TL1 = fsm::push_back<TL0, int>;
+
+  STATIC_REQUIRE(fsm::index_of<TL1, int> == 0);
+  STATIC_REQUIRE(TL1::size == 1);
+
+  using TL2 = fsm::push_back<TL1, float>;
+  STATIC_REQUIRE(fsm::index_of<TL2, int> == 0);
+  STATIC_REQUIRE(fsm::index_of<TL2, float> == 1);
+  STATIC_REQUIRE(TL2::size == 2);
+}
+
+TEST_CASE("transform types in typelist", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo>;
+  using R = typename fsm::transform<TL, std::add_const_t>;
+  STATIC_REQUIRE(R::size == 3);
+  STATIC_REQUIRE(fsm::has_type<R, const int>);
+  STATIC_REQUIRE(fsm::has_type<R, const float>);
+  STATIC_REQUIRE(fsm::has_type<R, const Foo>);
 }
