@@ -25,12 +25,14 @@ remove_reference_t<T> &&move(T &&arg) {
   return static_cast<remove_reference_t<T> &&>(arg);
 }
 
-struct true_type {
-  static constexpr bool value = true;
+template <auto v>
+struct integral_constant {
+  using type = decltype(v);
+  static constexpr auto value = v;
 };
-struct false_type {
-  static constexpr bool value = false;
-};
+
+struct true_type : integral_constant<true> {};
+struct false_type : integral_constant<false> {};
 
 template <typename T>
 constexpr T &&forward(remove_reference_t<T> &&param) noexcept {
@@ -43,6 +45,20 @@ constexpr T &&forward(remove_reference_t<T> &param) noexcept {
 
 template <typename T>
 T &&declval();
+
+template <bool B, class T = void>
+struct enable_if {};
+
+template <class T>
+struct enable_if<true, T> {
+  typedef T type;
+};
+
+template <typename T, typename U>
+struct is_same : public false_type {};
+
+template <typename T>
+struct is_same<T, T> : public true_type {};
 
 }  // namespace utils
 }  // namespace fsm
