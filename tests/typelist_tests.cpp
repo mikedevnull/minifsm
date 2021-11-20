@@ -55,7 +55,19 @@ TEST_CASE("transform types in typelist", "[meta]") {
   using TL = fsm::TypeList<int, float, Foo>;
   using R = typename fsm::transform<TL, std::add_const_t>;
   STATIC_REQUIRE(R::size == 3);
-  STATIC_REQUIRE(fsm::has_type<R, const int>);
-  STATIC_REQUIRE(fsm::has_type<R, const float>);
-  STATIC_REQUIRE(fsm::has_type<R, const Foo>);
+  STATIC_REQUIRE(fsm::index_of<R, const int> == 0);
+  STATIC_REQUIRE(fsm::index_of<R, const float> == 1);
+  STATIC_REQUIRE(fsm::index_of<R, const Foo> == 2);
+}
+
+TEST_CASE("extract sublist of typelist", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo, std::string, double, char>;
+  using TSub = fsm::subrange<TL, 1, 4>;
+  STATIC_REQUIRE(TSub::size == 3);
+  STATIC_REQUIRE(fsm::index_of<TSub, float> == 0);
+  STATIC_REQUIRE(fsm::index_of<TSub, Foo> == 1);
+  STATIC_REQUIRE(fsm::index_of<TSub, std::string> == 2);
+
+  using TSubZero = fsm::subrange<TL, 4, 4>;
+  STATIC_REQUIRE(TSubZero::size == 0);
 }

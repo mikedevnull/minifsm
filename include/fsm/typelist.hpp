@@ -76,4 +76,20 @@ struct transform_impl<TL<T...>, F> {
 template <typename TL, template <typename...> typename F>
 using transform = typename transform_impl<TL, F>::type;
 
+template <typename A, typename TL, auto Start, decltype(Start) End>
+struct subrange_impl;
+
+template <typename A, typename... Ts, auto Start, decltype(Start) End>
+struct subrange_impl<A, TypeList<Ts...>, Start, End> {
+  using T = push_back<A, type_at<TypeList<Ts...>, Start>>;
+  using type = typename subrange_impl<T, TypeList<Ts...>, Start + 1, End>::type;
+};
+
+template <typename A, typename... Ts, auto End>
+struct subrange_impl<A, TypeList<Ts...>, End, End> {
+  using type = A;
+};
+
+template <typename TL, auto Start, decltype(Start) End>
+using subrange = typename subrange_impl<TypeList<>, TL, Start, End>::type;
 }  // namespace fsm
