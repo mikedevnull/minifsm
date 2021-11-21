@@ -106,3 +106,16 @@ TEST_CASE("transform tuple", "[meta]") {
   REQUIRE(t4.get<1>() == 43);
   REQUIRE(t4.get<2>() == 2);
 }
+
+TEST_CASE("tuple subset selection by index", "[meta]") {
+  constexpr auto t = fsm::detail::Tuple<int, bool, char, int, unsigned>{
+      42, true, 'c', 1312, 4u};
+
+  constexpr auto t2 =
+      fsm::detail::select_by_index(t, fsm::detail::IntegerSequence<3, 1, 2>{});
+
+  STATIC_REQUIRE(t2.size == 3);
+  REQUIRE(t2.get<0>() == 1312);
+  REQUIRE(t2.get<1>() == true);
+  REQUIRE(t2.get<2>() == 'c');
+}

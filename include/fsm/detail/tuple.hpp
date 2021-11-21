@@ -113,5 +113,11 @@ constexpr auto transform_tuple(const Tuple<Ts...>& tuple, F&& f) {
   return transform_tuple_impl(tuple, f, Idx{});
 }
 
+template <auto... Is, typename... Ts>
+constexpr auto select_by_index(const Tuple<Ts...>& tuple,
+                               IntegerSequence<Is...>) {
+  return fsm::detail::make_tuple(get<Is>(tuple)...);
+}
+
 }  // namespace detail
 }  // namespace fsm
