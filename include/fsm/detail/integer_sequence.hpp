@@ -3,17 +3,19 @@
 namespace fsm {
 namespace detail {
 template <auto... Idx>
-struct IntegerSequence {};
+struct IntegerSequence;
 
 template <auto v0, decltype(v0)... Idx>
 struct IntegerSequence<v0, Idx...> {
   using value_type = decltype(v0);
   using type = IntegerSequence;
+  static constexpr auto size = sizeof...(Idx) + 1;
 };
 
 template <>
 struct IntegerSequence<> {
   using type = IntegerSequence;
+  static constexpr auto size = 0;
 };
 
 template <class L, auto... Is>
