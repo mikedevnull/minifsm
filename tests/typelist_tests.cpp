@@ -4,7 +4,7 @@
 
 #include <type_traits>
 
-class Foo;
+class Foo {};
 
 TEST_CASE("calculate length of typelist", "[meta]") {
   using TL1 = fsm::TypeList<int, float, Foo>;
@@ -72,15 +72,34 @@ TEST_CASE("extract sublist of typelist", "[meta]") {
   STATIC_REQUIRE(TSubZero::size == 0);
 }
 
-TEST_CASE("typelist find indizes by predicate", "[meta]") {
+TEST_CASE("typelist find indizes by template predicate", "[meta]") {
   using TL = fsm::TypeList<int, float, Foo, std::string, double, char>;
 
-  using Idx0 = fsm::find_if<std::is_integral, TL>;
+  using Idx0 = fsm::find_all_if<std::is_integral, TL>;
   STATIC_REQUIRE(Idx0::size == 2);
   STATIC_REQUIRE(std::is_same_v<Idx0, fsm::detail::IntegerSequence<0, 5>>);
 
-  using Idx1 = fsm::find_if<std::is_fundamental, TL>;
+  using Idx1 = fsm::find_all_if<std::is_fundamental, TL>;
   STATIC_REQUIRE(Idx1::size == 4);
   STATIC_REQUIRE(
       std::is_same_v<Idx1, fsm::detail::IntegerSequence<0, 1, 4, 5>>);
+}
+
+TEST_CASE("typelist find indizes by constexpr predicate callable", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo, double, char>;
+
+  constexpr auto pred0 = [](auto v) constexpr {
+    return std::is_integral_v<decltype(v)>;
+  };
+  using Idx0 = decltype(fsm::find_all_if_callable(TL{}, pred0));
+  STATIC_REQUIRE(Idx0::size == 2);
+  STATIC_REQUIRE(std::is_same_v<Idx0, fsm::detail::IntegerSequence<0, 4>>);
+
+  constexpr auto pred1 = [](auto v) constexpr {
+    return std::is_fundamental_v<decltype(v)>;
+  };
+  using Idx1 = decltype(fsm::find_all_if_callable(TL{}, pred1));
+  STATIC_REQUIRE(Idx1::size == 4);
+  STATIC_REQUIRE(
+      std::is_same_v<Idx1, fsm::detail::IntegerSequence<0, 1, 3, 4>>);
 }

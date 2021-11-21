@@ -102,22 +102,46 @@ using subrange = typename subrange_impl<TypeList<>, TL, Start, End>::type;
 
 template <template <typename> typename Pred, typename Result, auto N,
           typename... Ts>
-constexpr auto find_if_impl(Result result, TypeList<Ts...>,
-                            utils::integral_constant<N>) {
+constexpr auto find_all_if_impl(Result result, TypeList<Ts...>,
+                                utils::integral_constant<N>) {
   using TL = TypeList<Ts...>;
   if constexpr (N == TL::size) {
     return result;
   } else if constexpr (Pred<type_at<TL, N>>::value) {
-    return find_if_impl<Pred>(
+    return find_all_if_impl<Pred>(
         concat_sequence(result, detail::IntegerSequence<N>{}), TL{},
         utils::integral_constant<N + 1>{});
   } else {
-    return find_if_impl<Pred>(result, TL{}, utils::integral_constant<N + 1>{});
+    return find_all_if_impl<Pred>(result, TL{},
+                                  utils::integral_constant<N + 1>{});
   }
 }
 
 template <template <typename> typename Pred, typename TL>
-using find_if = decltype(find_if_impl<Pred>(detail::IntegerSequence<>{}, TL{},
-                                            utils::integral_constant<0>{}));
+using find_all_if = decltype(find_all_if_impl<Pred>(
+    detail::IntegerSequence<>{}, TL{}, utils::integral_constant<0>{}));
+
+template <typename Pred, typename Result, auto N, typename... Ts>
+constexpr auto find_all_if_callable_impl(Result result, Pred pred,
+                                         TypeList<Ts...>,
+                                         utils::integral_constant<N>) {
+  using TL = TypeList<Ts...>;
+  if constexpr (N == TL::size) {
+    return result;
+  } else if constexpr (pred(type_at<TL, N>{})) {
+    return find_all_if_callable_impl(
+        concat_sequence(result, detail::IntegerSequence<N>{}), pred, TL{},
+        utils::integral_constant<N + 1>{});
+  } else {
+    return find_all_if_callable_impl(result, pred, TL{},
+                                     utils::integral_constant<N + 1>{});
+  }
+}
+
+template <typename Pred, typename... Ts>
+constexpr auto find_all_if_callable(TypeList<Ts...> tl, Pred pred) {
+  return find_all_if_callable_impl(detail::IntegerSequence<>{}, pred, tl,
+                                   utils::integral_constant<0>{});
+}
 
 }  // namespace fsm
