@@ -1,4 +1,5 @@
 #pragma once
+#include <fsm/detail/integer_sequence.hpp>
 #include <fsm/detail/meta.hpp>
 #include <fsm/substitutes.hpp>
 
@@ -90,6 +91,33 @@ struct subrange_impl<A, TypeList<Ts...>, End, End> {
   using type = A;
 };
 
+template <auto... Is, auto... Us>
+constexpr auto concat_sequence(detail::IntegerSequence<Is...>,
+                               detail::IntegerSequence<Us...>) {
+  return detail::IntegerSequence<Is..., Us...>{};
+}
+
 template <typename TL, auto Start, decltype(Start) End>
 using subrange = typename subrange_impl<TypeList<>, TL, Start, End>::type;
+
+template <template <typename> typename Pred, typename Result, auto N,
+          typename... Ts>
+constexpr auto find_if_impl(Result result, TypeList<Ts...>,
+                            utils::integral_constant<N>) {
+  using TL = TypeList<Ts...>;
+  if constexpr (N == TL::size) {
+    return result;
+  } else if constexpr (Pred<type_at<TL, N>>::value) {
+    return find_if_impl<Pred>(
+        concat_sequence(result, detail::IntegerSequence<N>{}), TL{},
+        utils::integral_constant<N + 1>{});
+  } else {
+    return find_if_impl<Pred>(result, TL{}, utils::integral_constant<N + 1>{});
+  }
+}
+
+template <template <typename> typename Pred, typename TL>
+using find_if = decltype(find_if_impl<Pred>(detail::IntegerSequence<>{}, TL{},
+                                            utils::integral_constant<0>{}));
+
 }  // namespace fsm

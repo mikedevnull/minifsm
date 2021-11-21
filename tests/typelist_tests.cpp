@@ -71,3 +71,16 @@ TEST_CASE("extract sublist of typelist", "[meta]") {
   using TSubZero = fsm::subrange<TL, 4, 4>;
   STATIC_REQUIRE(TSubZero::size == 0);
 }
+
+TEST_CASE("typelist find indizes by predicate", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo, std::string, double, char>;
+
+  using Idx0 = fsm::find_if<std::is_integral, TL>;
+  STATIC_REQUIRE(Idx0::size == 2);
+  STATIC_REQUIRE(std::is_same_v<Idx0, fsm::detail::IntegerSequence<0, 5>>);
+
+  using Idx1 = fsm::find_if<std::is_fundamental, TL>;
+  STATIC_REQUIRE(Idx1::size == 4);
+  STATIC_REQUIRE(
+      std::is_same_v<Idx1, fsm::detail::IntegerSequence<0, 1, 4, 5>>);
+}
