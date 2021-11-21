@@ -80,6 +80,16 @@ TEST_CASE("append values to front of tuple", "[meta]") {
   REQUIRE(t2.get<2>() == true);
 }
 
+TEST_CASE("append values to back of tuple", "[meta]") {
+  const fsm::detail::Tuple<int, bool> t{42, true};
+  auto t2 = fsm::detail::push_back_tuple(t, 'c');
+
+  STATIC_REQUIRE(t2.size == 3);
+  REQUIRE(t2.get<0>() == 42);
+  REQUIRE(t2.get<1>() == true);
+  REQUIRE(t2.get<2>() == 'c');
+}
+
 TEST_CASE("transform tuple", "[meta]") {
   constexpr auto t = fsm::detail::Tuple<int, bool>{42, true};
   constexpr auto c = 'c';

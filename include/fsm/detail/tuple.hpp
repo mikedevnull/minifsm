@@ -96,6 +96,17 @@ constexpr auto push_front(const Tuple<Ts...>& tuple, T v) {
   return push_front_impl(tuple, v, typename Tuple<Ts...>::Idx{});
 }
 
+template <typename T, typename... Ts, auto... Is>
+constexpr auto push_back_impl(const Tuple<Ts...>& tuple, T v,
+                              IntegerSequence<Is...>) {
+  return Tuple<Ts..., T>{get<Is>(tuple)..., v};
+}
+
+template <typename T, typename... Ts>
+constexpr auto push_back_tuple(const Tuple<Ts...>& tuple, T v) {
+  return push_back_impl(tuple, v, typename Tuple<Ts...>::Idx{});
+}
+
 template <typename... Args>
 constexpr auto make_tuple(Args&&... args) {
   return Tuple<Args...>{utils::forward<Args>(args)...};
