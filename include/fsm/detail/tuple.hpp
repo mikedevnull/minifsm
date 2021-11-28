@@ -130,5 +130,21 @@ constexpr auto select_by_index(const Tuple<Ts...>& tuple,
   return fsm::detail::make_tuple(get<Is>(tuple)...);
 }
 
+template <unsigned int N, typename F, typename... Ts>
+void visit_impl(unsigned int idx, Tuple<Ts...>& tuple, F func) {
+  if constexpr (N == 0) {
+    return;
+  } else if (idx == N - 1) {
+    func(tuple.template get<N - 1>());
+  } else {
+    visit_impl<N - 1>(idx, tuple, func);
+  }
+}
+
+template <typename F, typename... Ts>
+void visit(Tuple<Ts...> tuple, unsigned int index, F f) {
+  visit_impl<Tuple<Ts...>::size>(index, tuple, f);
+}
+
 }  // namespace detail
 }  // namespace fsm

@@ -129,3 +129,18 @@ TEST_CASE("tuple subset selection by index", "[meta]") {
   REQUIRE(t2.get<1>() == true);
   REQUIRE(t2.get<2>() == 'c');
 }
+
+TEST_CASE("tuple runtime element visitation", "[meta]") {
+  constexpr auto t = fsm::detail::Tuple<int, bool, char, int, unsigned>{
+      42, true, 'c', 1312, 4u};
+
+  bool got_int_value = false;
+
+  fsm::detail::visit(t, 3, [&got_int_value](auto element) {
+    if (element == 1312) {
+      got_int_value = true;
+    }
+  });
+
+  REQUIRE(got_int_value);
+}
