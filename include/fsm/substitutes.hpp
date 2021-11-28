@@ -21,6 +21,26 @@ template <typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 
 template <typename T>
+struct remove_cv {
+  typedef T type;
+};
+template <typename T>
+struct remove_cv<const T> {
+  typedef T type;
+};
+template <typename T>
+struct remove_cv<volatile T> {
+  typedef T type;
+};
+template <typename T>
+struct remove_cv<const volatile T> {
+  typedef T type;
+};
+
+template <typename T>
+using remove_cv_t = typename remove_cv<T>::type;
+
+template <typename T>
 remove_reference_t<T> &&move(T &&arg) {
   return static_cast<remove_reference_t<T> &&>(arg);
 }
@@ -54,11 +74,17 @@ struct enable_if<true, T> {
   typedef T type;
 };
 
+template <bool B, class T>
+using enable_if_t = typename enable_if<B, T>::type;
+
 template <typename T, typename U>
 struct is_same : public false_type {};
 
 template <typename T>
 struct is_same<T, T> : public true_type {};
+
+template <typename T, typename U>
+constexpr auto is_same_v = is_same<T, U>::value;
 
 }  // namespace utils
 }  // namespace fsm
