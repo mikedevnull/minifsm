@@ -77,7 +77,8 @@ struct Transition {
 };
 
 template <typename Source, typename E, typename Target>
-constexpr auto make_transition(const Source &, const E &, const Target &) {
+constexpr auto make_transition(const fsm::State<Source>, const fsm::Event<E>,
+                               const fsm::State<Target>) {
   return detail::Transition<Source, E, Target>{};
 };
 

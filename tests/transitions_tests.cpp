@@ -12,15 +12,12 @@ TEST_CASE("create transition without action", "[core]") {
   auto transition = make_transition(fsm::state<AState>, fsm::event<AnEvent>,
                                     fsm::state<AnotherState>);
   using T = decltype(transition);
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(transition.source()), fsm::State<AState>>);
-  STATIC_REQUIRE(std::is_same_v<T::Source, fsm::State<AState>>);
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(transition.event()), fsm::Event<AnEvent>>);
-  STATIC_REQUIRE(std::is_same_v<T::Event, fsm::Event<AnEvent>>);
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(transition.target()), fsm::State<AnotherState>>);
-  STATIC_REQUIRE(std::is_same_v<T::Target, fsm::State<AnotherState>>);
+  STATIC_REQUIRE(std::is_same_v<decltype(transition.source()), AState>);
+  STATIC_REQUIRE(std::is_same_v<T::Source, AState>);
+  STATIC_REQUIRE(std::is_same_v<decltype(transition.event()), AnEvent>);
+  STATIC_REQUIRE(std::is_same_v<T::Event, AnEvent>);
+  STATIC_REQUIRE(std::is_same_v<decltype(transition.target()), AnotherState>);
+  STATIC_REQUIRE(std::is_same_v<T::Target, AnotherState>);
 }
 
 TEST_CASE("create transition with lambda as action", "[core]") {
