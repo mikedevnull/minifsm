@@ -33,6 +33,5 @@ target_link_libraries(minifsm_tests
     FakeIt)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
-include(CTest)
 include(Catch)
 catch_discover_tests(minifsm_tests)
