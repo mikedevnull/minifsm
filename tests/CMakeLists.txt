@@ -22,6 +22,7 @@ add_executable(minifsm_tests
     catch_main.cpp 
     transitions_tests.cpp
     transition_table_tests.cpp
+    state_machine_tests.cpp
     tuple_tests.cpp
     typelist_tests.cpp)
 

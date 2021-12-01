@@ -17,7 +17,7 @@ namespace detail {
 
 struct NoAction {
   template <typename S, typename E, typename T>
-  void operator()(S &, const E &, T &);
+  void operator()(S &, const E &, T &) const {}
 };
 
 struct NoContext {};
@@ -70,6 +70,12 @@ struct Transition {
   utils::enable_if_t<!utils::is_same_v<Q, NoContext>, void> execute(
       const Context &context, Source &source, const Event &event, T &target) {
     action_(context, source, event, target);
+  }
+
+  template <typename CheckedState, typename CheckedEvent>
+  static constexpr bool match() {
+    return utils::is_same_v<CheckedState, Source> &&
+           utils::is_same_v<CheckedEvent, Event>;
   }
 
  private:

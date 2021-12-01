@@ -2,48 +2,61 @@
 
 #include <fsm/detail/stateholder.hpp>
 #include <fsm/detail/statemachine.hpp>
-#include <fsm/detail/visitors.hpp>
 
 namespace fsm {
 
-template <typename States, typename Dep = detail::NoDependency>
+template <typename SMConfig, typename Dep = detail::NoDependency>
 class StateMachine {
-  using StateTypes = States;
+  using TransitionTable = detail::transition_table_from_config<SMConfig>;
+  using States = detail::extractStates_t<TransitionTable>;
+  using InitialState = detail::extract_initial_state<TransitionTable>;
+  using StateLookup = decltype(detail::make_state_dispatch_lookup(
+      SMConfig::transition_table()));
 
  public:
-  StateMachine() {}
+  StateMachine()
+      : eventDispatch_(
+            detail::make_state_dispatch_lookup(SMConfig::transition_table())) {}
+
   template <typename D = Dep>
-  explicit StateMachine(D dep) : dependency_(dep) {}
+  explicit StateMachine(D dep)
+      : dependency_(dep),
+        eventDispatch_(
+            detail::make_state_dispatch_lookup(SMConfig::transition_table())) {}
+
   template <typename Event>
   void processEvent(const Event &event) {
-    auto visitor =
-        detail::createOnEventVisitor(event, *this, dependency_.value);
-    visit(currentStateIndex_, states_, visitor);
+    detail::visit(
+        eventDispatch_, currentStateIndex_, [this, event](auto &currentState) {
+          using Transitions = decltype(currentState.transitions);
+          using Source = decltype(currentState.rawState);
+          using Match = detail::matchTransition_t<typename Transitions::TL,
+                                                  Source, Event>;
+          if constexpr (utils::is_same_v<Match, detail::NoMatch>) {
+            return;
+          } else {
+            constexpr auto matchTransitionIndex =
+                index_of<typename Transitions::TL, Match>;
+            static_assert(matchTransitionIndex > -1);
+            using Target = typename Match::Target;
+            constexpr auto targetIndex = index_of<States, Target>;
+            static_assert(targetIndex > -1);
+            detail::get<matchTransitionIndex>(currentState.transitions)
+                .execute(currentState.rawState, event,
+                         detail::get<targetIndex>(eventDispatch_).rawState);
+            currentStateIndex_ = targetIndex;
+          }
+        });
   }
 
   template <typename State>
   constexpr bool isState() {
-    return currentStateIndex_ == IndexOf<StateTypes, State>::value;
-  }
-
-  template <typename TargetState, typename Event>
-  void transitionTo(const Event &event) {
-    constexpr auto targetIndex = IndexOf<StateTypes, TargetState>::value;
-    static_assert(targetIndex >= 0, "Unkown target state");
-    if (targetIndex == currentStateIndex_) {
-      return;
-    }
-    // visit(currentStateIndex_, states_,
-    //       ExitStateVisitor{event, states_.template get<targetIndex>()});
-    // visit(currentStateIndex_, states_,
-    //       EnterStateVisitor{event, states_.template get<targetIndex>(),
-    //                         dependency_});
-    currentStateIndex_ = targetIndex;
+    return currentStateIndex_ == index_of<States, State>;
   }
 
  private:
-  detail::StateHolder<States> states_;
+  StateLookup eventDispatch_;
   detail::DependencyHolder<Dep> dependency_;
-  unsigned int currentStateIndex_ = 0;
+  unsigned int currentStateIndex_ = index_of<States, InitialState>;
 };
 }  // namespace fsm
