@@ -1,63 +1,40 @@
 #pragma once
 
+#include "fsm/detail/transition_table.hpp"
+#include "fsm/detail/tuple.hpp"
+#include "fsm/state.hpp"
 #include "fsm/substitutes.hpp"
 #include "fsm/typelist.hpp"
 
 namespace fsm {
 namespace detail {
 
-template <typename T>
-struct StateValue {
-  StateValue() = default;
-  explicit StateValue(T &&v) : value_(utils::move(v)) {}
-  T value_;
+template <typename S, typename Tsl>
+struct StateHolder {
+  using RawState = S;
+  using Transitions = Tsl;
+  RawState rawState;
+  Transitions transitions;
 };
 
-template <typename... States>
-struct StateHolder;
-
-template <typename... States>
-struct StateHolder<TypeList<States...>> : public StateValue<States>... {
-  static constexpr unsigned int size = sizeof...(States);
-  using StateTypes = TypeList<States...>;
-
-  template <unsigned int N>
-  const auto &get() const {
-    static_assert(N < sizeof...(States), "index out of range");
-    return get<typename TypeAt<StateTypes, N>::type>();
-  }
-
-  template <typename T>
-  const auto &get() const {
-    return StateValue<T>::value_;
-  }
-
-  template <unsigned int N>
-  auto &get() {
-    static_assert(N < sizeof...(States), "index out of range");
-    return get<typename TypeAt<StateTypes, N>::type>();
-  }
-
-  template <typename T>
-  auto &get() {
-    return StateValue<T>::value_;
-  }
-};
-
-template <unsigned int N, typename Data, typename F>
-void visitImpl(unsigned int idx, Data &states, F func) {
-  if constexpr (N == 0) {
-    return;
-  } else if (idx == N - 1) {
-    func(states.template get<N - 1>());
-  } else {
-    visitImpl<N - 1>(idx, states, func);
-  }
+template <typename S, typename Transitions>
+constexpr auto make_state_holder(S s, Transitions t) {
+  auto v = S{};
+  return StateHolder<S, Transitions>{v, t};
 }
 
-template <typename... States, typename F>
-void visit(unsigned int index, StateHolder<States...> &states, F func) {
-  visitImpl<StateHolder<States...>::size>(index, states, func);
+template <typename TT>
+auto make_state_dispatch_lookup(TT &&tt) {
+  using States = extractStates_t<TT>;
+  auto states = detail::tuple_from_typelist(States{});
+
+  return transform_tuple(states, [tt](auto state) {
+    using State = utils::remove_cv_t<decltype(state)>;
+
+    auto statetransitions =
+        detail::filter_transitions_by_state<State>(tt.transitions);
+    return make_state_holder(state, statetransitions);
+  });
 }
 
 }  // namespace detail
