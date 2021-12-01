@@ -21,6 +21,7 @@ target_include_directories(FakeIt INTERFACE ${fakeit_SOURCE_DIR}/single_header/c
 add_executable(minifsm_tests 
     catch_main.cpp 
     transitions_tests.cpp
+    transition_table_tests.cpp
     tuple_tests.cpp
     typelist_tests.cpp)
 
