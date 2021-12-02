@@ -7,24 +7,24 @@ namespace fsm {
 
 template <typename... Types>
 struct TypeList {
-  static constexpr auto size = sizeof...(Types);
+  static constexpr unsigned int size = sizeof...(Types);
 };
 
-template <typename TypeList, auto N>
+template <typename TypeList, unsigned int N>
 struct type_at_impl;
 
 template <typename Head, typename... Tail>
-struct type_at_impl<TypeList<Head, Tail...>, 0> {
+struct type_at_impl<TypeList<Head, Tail...>, 0u> {
   using type = Head;
 };
 
-template <typename Head, typename... Tail, auto N>
+template <typename Head, typename... Tail, unsigned int N>
 struct type_at_impl<TypeList<Head, Tail...>, N> {
   static_assert(N < sizeof...(Tail) + 1, "N out of range");
   using type = typename type_at_impl<TypeList<Tail...>, N - 1>::type;
 };
 
-template <typename TL, auto N>
+template <typename TL, unsigned int N>
 using type_at = typename type_at_impl<TL, N>::type;
 
 template <typename TypeList, typename TargetState>
