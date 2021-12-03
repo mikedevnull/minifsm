@@ -14,14 +14,6 @@ struct ErrorEvent {};
 struct TaskDone {};
 struct Reset {};
 
-using States = fsm::TypeList<Idle, Working, Error>;
-
-template <typename C>
-struct Context {};
-
-template <typename C>
-const Context<C> context{};
-
 struct MyStateMachine {
   static constexpr auto transition_table() {
     using namespace fsm;
