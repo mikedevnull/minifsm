@@ -46,7 +46,7 @@ struct Transition {
   using Target = T;
   using Context = C;
   using Action = A;
-  Transition(Action action) : action_(action) {}
+  constexpr Transition(Action action) : action_(action) {}
 
   Transition() = default;
 

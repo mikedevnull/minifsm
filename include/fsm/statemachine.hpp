@@ -8,30 +8,27 @@ namespace fsm {
 template <typename SMConfig, typename Dep = detail::NoDependency>
 class StateMachine {
   using TransitionTable = detail::transition_table_from_config<SMConfig>;
-  using States = detail::extractStates_t<TransitionTable>;
+  using StateList = detail::extractStates_t<TransitionTable>;
+  using States =
+      decltype(detail::tuple_from_typelist(utils::declval<StateList>()));
   using InitialState = detail::extract_initial_state<TransitionTable>;
-  using StateLookup = decltype(detail::make_state_dispatch_lookup(
-      SMConfig::transition_table()));
 
  public:
-  StateMachine()
-      : eventDispatch_(
-            detail::make_state_dispatch_lookup(SMConfig::transition_table())) {}
+  StateMachine() : states_{}, tt_{SMConfig::transition_table()} {}
 
   template <typename D = Dep>
-  explicit StateMachine(D dep)
-      : dependency_(dep),
-        eventDispatch_(
-            detail::make_state_dispatch_lookup(SMConfig::transition_table())) {}
+  explicit StateMachine(D dep) : dependency_(dep) {}
 
   template <typename Event>
   void processEvent(const Event &event) {
     detail::visit(
-        eventDispatch_, currentStateIndex_, [this, event](auto &currentState) {
-          using Transitions = decltype(currentState.transitions);
-          using Source = decltype(currentState.rawState);
+        states_, currentStateIndex_, [this, event](auto &currentState) {
+          using Transitions = decltype(tt_.transitions);
+
+          using Source = utils::remove_cvref_t<decltype(currentState)>;
           using Match = detail::matchTransition_t<typename Transitions::TL,
                                                   Source, Event>;
+          // detail::showTheType<Source> x;
           if constexpr (utils::is_same_v<Match, detail::NoMatch>) {
             return;
           } else {
@@ -39,11 +36,11 @@ class StateMachine {
                 index_of<typename Transitions::TL, Match>;
             static_assert(matchTransitionIndex > -1);
             using Target = typename Match::Target;
-            constexpr auto targetIndex = index_of<States, Target>;
+            constexpr auto targetIndex = index_of<typename States::TL, Target>;
             static_assert(targetIndex > -1);
-            detail::get<matchTransitionIndex>(currentState.transitions)
-                .execute(currentState.rawState, event,
-                         detail::get<targetIndex>(eventDispatch_).rawState);
+            detail::get<matchTransitionIndex>(tt_.transitions)
+                .execute(currentState, event,
+                         detail::get<targetIndex>(states_));
             currentStateIndex_ = targetIndex;
           }
         });
@@ -51,12 +48,13 @@ class StateMachine {
 
   template <typename State>
   constexpr bool isState() {
-    return currentStateIndex_ == index_of<States, State>;
+    return currentStateIndex_ == index_of<typename States::TL, State>;
   }
 
  private:
-  StateLookup eventDispatch_;
+  States states_;
+  TransitionTable tt_;
   detail::DependencyHolder<Dep> dependency_;
-  unsigned int currentStateIndex_ = index_of<States, InitialState>;
+  unsigned int currentStateIndex_ = index_of<typename States::TL, InitialState>;
 };
 }  // namespace fsm
