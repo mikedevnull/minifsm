@@ -44,6 +44,13 @@ template <typename T>
 remove_reference_t<T> &&move(T &&arg) {
   return static_cast<remove_reference_t<T> &&>(arg);
 }
+template <class T>
+struct remove_cvref {
+  using type = remove_cv_t<remove_reference_t<T>>;
+};
+
+template <class T>
+using remove_cvref_t = typename remove_cvref<T>::type;
 
 template <auto v>
 struct integral_constant {
