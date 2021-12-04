@@ -63,7 +63,7 @@ template <typename TL, typename T>
 using push_back = typename push_back_impl<TL, T>::type;
 
 template <typename TL, typename T>
-constexpr auto has_type = detail::_if_c<index_of<TL, T> != -1>::value;
+constexpr auto has_type = index_of<TL, T> != -1 ? true : false;
 
 template <typename TL, template <typename...> typename F>
 struct transform_impl;

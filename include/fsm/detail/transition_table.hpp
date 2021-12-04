@@ -48,16 +48,18 @@ struct extractStatesImpl<TypeList<Transition, Transitions...>> {
   using TSource = typename Transition::Source;
   using TTarget = typename Transition::Target;
 
-  using S1 = _if_t<fsm::push_back<S, TSource>, S, index_of<S, TSource> == -1>;
-  using type =
-      _if_t<fsm::push_back<S1, TTarget>, S, index_of<S1, TTarget> == -1>;
+  using S1 = utils::conditional_t<index_of<S, TSource> == -1,
+                                  fsm::push_back<S, TSource>, S>;
+  using type = utils::conditional_t<index_of<S, TTarget> == -1,
+                                    fsm::push_back<S1, TTarget>, S>;
 };
 
 template <typename Transition>
 struct extractStatesImpl<TypeList<Transition>> {
   using S = TypeList<typename Transition::Source>;
-  using type = _if_t<fsm::push_back<S, typename Transition::Target>, S,
-                     index_of<S, typename Transition::Target> == -1>;
+  using type =
+      utils::conditional_t<index_of<S, typename Transition::Target> == -1,
+                           fsm::push_back<S, typename Transition::Target>, S>;
 };
 
 template <>
@@ -82,10 +84,9 @@ struct matchTransition {
 
 template <typename Source, typename Event, typename Head, typename... Tail>
 struct matchTransition<TypeList<Head, Tail...>, Source, Event> {
-  using type =
-      _if_t<Head,
-            typename matchTransition<TypeList<Tail...>, Source, Event>::type,
-            Head::template match<Source, Event>()>;
+  using type = utils::conditional_t<
+      Head::template match<Source, Event>(), Head,
+      typename matchTransition<TypeList<Tail...>, Source, Event>::type>;
 };
 
 template <typename TL, typename Source, typename Event>

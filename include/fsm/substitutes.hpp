@@ -106,5 +106,18 @@ struct is_same<T, T> : public true_type {};
 template <typename T, typename U>
 constexpr auto is_same_v = is_same<T, U>::value;
 
+template <bool, typename T, typename U>
+struct conditional {
+  using type = U;
+};
+
+template <typename T, typename U>
+struct conditional<true, T, U> {
+  using type = T;
+};
+
+template <bool B, typename T, typename U>
+using conditional_t = typename conditional<B, T, U>::type;
+
 }  // namespace utils
 }  // namespace fsm
