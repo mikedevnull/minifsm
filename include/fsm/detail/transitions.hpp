@@ -24,7 +24,7 @@ struct NoContext {};
 
 template <typename C, typename F>
 struct MemFunAction {
-  MemFunAction(F f) : _fun(f) {}
+  constexpr MemFunAction(F f) : _fun(f) {}
   template <typename... Args>
   auto operator()(C &context, Args &&...args) const {
     return (context.*_fun)(utils::forward<Args>(args)...);
@@ -58,6 +58,18 @@ struct Transition {
   utils::enable_if_t<utils::is_same_v<Q, NoContext>, void> execute(
       Source &source, const Event &event, T &target) {
     action_(source, event, target);
+  }
+
+  template <typename Q = C>
+  utils::enable_if_t<!utils::is_same_v<Q, NoContext>, void> execute(
+      Context *context, Source &source, const Event &event, T &target) {
+    action_(*context, source, event, target);
+  }
+
+  template <typename Q = C>
+  utils::enable_if_t<!utils::is_same_v<Q, NoContext>, void> execute(
+      const Context *context, Source &source, const Event &event, T &target) {
+    action_(*context, source, event, target);
   }
 
   template <typename Q = C>
