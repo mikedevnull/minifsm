@@ -100,6 +100,47 @@ constexpr auto concat_sequence(detail::IntegerSequence<Is...>,
 template <typename TL, auto Start, decltype(Start) End>
 using subrange = typename subrange_impl<TypeList<>, TL, Start, End>::type;
 
+template <template <typename> typename Pred, typename TL, typename...>
+struct push_back_if_impl;
+
+template <template <typename> typename Pred, typename TL, typename... Ts>
+using push_back_if = typename push_back_if_impl<Pred, TL, Ts...>::type;
+
+template <template <typename> typename Pred, typename TL, typename... Ts>
+struct push_back_if_impl<Pred, TL, TypeList<Ts...>> {
+  using type = typename push_back_if_impl<Pred, TL, Ts...>::type;
+};
+
+template <template <typename> typename Pred, typename TL, typename T,
+          typename... Ts>
+struct push_back_if_impl<Pred, TL, T, Ts...> {
+  using type = utils::conditional_t<
+      Pred<T>::value,
+      typename push_back_if_impl<Pred, push_back<TL, T>, Ts...>::type,
+      typename push_back_if_impl<Pred, TL, Ts...>::type>;
+};
+
+template <template <typename> typename Pred, typename TL>
+struct push_back_if_impl<Pred, TL> {
+  using type = TL;
+};
+
+template <template <typename> typename Pred, typename TL>
+using filter_if = push_back_if<Pred, TypeList<>, TL>;
+
+template <template <typename> typename Pred, typename TL>
+struct remove_if_impl {
+  template <typename T>
+  struct _not_predicate
+      : utils::conditional_t<Pred<T>::value, utils::false_type,
+                             utils::true_type> {};
+
+  using type = push_back_if<_not_predicate, TypeList<>, TL>;
+};
+
+template <template <typename> typename Pred, typename TL>
+using remove_if = typename remove_if_impl<Pred, TL>::type;
+
 template <template <typename> typename Pred, typename Result, auto N,
           typename... Ts>
 constexpr auto find_all_if_impl(Result result, TypeList<Ts...>,
