@@ -3,6 +3,19 @@
 namespace fsm {
 namespace utils {
 template <typename T>
+struct add_pointer {
+  using type = T *;
+};
+
+template <typename T>
+struct add_pointer<T *> {
+  using type = T *;
+};
+
+template <typename T>
+using add_pointer_t = typename add_pointer<T>::type;
+
+template <typename T>
 struct remove_reference {
   using type = T;
 };
