@@ -2,6 +2,7 @@
 #include "fsm/transition_table.hpp"
 
 #include <catch2/catch.hpp>
+#include <fakeit.hpp>
 
 // states
 struct Idle {};
@@ -105,4 +106,41 @@ TEST_CASE("state machine calls actions", "[frontend]") {
 
     REQUIRE(x.isState<Error>());
   }
+}
+
+namespace {
+class Foo {
+ public:
+  virtual void doFoo(const Idle&, const TaskStarted&, const Working&) = 0;
+};
+
+struct StateMachineWithActionsAndContext {
+  static constexpr auto transition_table() {
+    using namespace fsm;
+
+    return make_transition_table(
+        make_transition(state<Idle>, event<TaskStarted>, state<Working>,
+                        context<Foo>, &Foo::doFoo),
+        make_transition(state<Idle>, event<ErrorEvent>, state<Error>,
+                        Functor{}),
+        make_transition(state<Working>, event<TaskDone>, state<Idle>,
+                        freeAction),
+        make_transition(state<Working>, event<ErrorEvent>, state<Error>),
+        make_transition(state<Error>, event<Reset>, state<Idle>));
+  }
+};
+}  // namespace
+
+TEST_CASE("State machine with actions and context", "[frontend]") {
+  using namespace fakeit;
+  Mock<Foo> mock;
+  When(Method(mock, doFoo)).Return();
+
+  auto& foo = mock.get();
+
+  fsm::StateMachine<StateMachineWithActionsAndContext> x{&foo};
+
+  x.processEvent(TaskStarted{});
+  REQUIRE(x.isState<Working>());
+  Verify(Method(mock, doFoo));
 }

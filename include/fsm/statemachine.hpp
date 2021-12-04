@@ -9,15 +9,20 @@ template <typename SMConfig, typename Dep = detail::NoDependency>
 class StateMachine {
   using TransitionTable = detail::transition_table_from_config<SMConfig>;
   using StateList = detail::extractStates_t<TransitionTable>;
-  using States =
-      decltype(detail::tuple_from_typelist(utils::declval<StateList>()));
+  using States = rebind<StateList, detail::Tuple>;
   using InitialState = detail::extract_initial_state<TransitionTable>;
+  using ContextList = detail::extract_contexts<TransitionTable>;
+  using ContextHoldingTypes = transform<ContextList, utils::add_pointer_t>;
+  using Contexts = rebind<ContextHoldingTypes, detail::Tuple>;
 
  public:
-  StateMachine() : states_{}, tt_{SMConfig::transition_table()} {}
-
-  template <typename D = Dep>
-  explicit StateMachine(D dep) : dependency_(dep) {}
+  template <typename... Ts>
+  constexpr explicit StateMachine(Ts &&...deps)
+      : contexts_(utils::forward<Ts>(deps)...),
+        states_{},
+        tt_{SMConfig::transition_table()} {
+    static_assert(sizeof...(Ts) == ContextList::size);
+  }
 
   template <typename Event>
   void processEvent(const Event &event) {
@@ -38,9 +43,20 @@ class StateMachine {
             using Target = typename Match::Target;
             constexpr auto targetIndex = index_of<typename States::TL, Target>;
             static_assert(targetIndex > -1);
-            detail::get<matchTransitionIndex>(tt_.transitions)
-                .execute(currentState, event,
-                         detail::get<targetIndex>(states_));
+            using Context = typename Match::Context;
+            if constexpr (utils::is_same_v<Context, detail::NoContext>) {
+              detail::get<matchTransitionIndex>(tt_.transitions)
+                  .execute(currentState, event,
+                           detail::get<targetIndex>(states_));
+            } else {
+              constexpr auto contextIndex =
+                  index_of<typename Contexts::TL,
+                           utils::add_pointer_t<Context>>;
+              static_assert(contextIndex > -1);
+              detail::get<matchTransitionIndex>(tt_.transitions)
+                  .execute(detail::get<contextIndex>(contexts_), currentState,
+                           event, detail::get<targetIndex>(states_));
+            }
             currentStateIndex_ = targetIndex;
           }
         });
@@ -54,7 +70,7 @@ class StateMachine {
  private:
   States states_;
   TransitionTable tt_;
-  detail::DependencyHolder<Dep> dependency_;
+  Contexts contexts_;
   unsigned int currentStateIndex_ = index_of<typename States::TL, InitialState>;
 };
 }  // namespace fsm
