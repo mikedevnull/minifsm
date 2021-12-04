@@ -10,6 +10,17 @@ struct TypeList {
   static constexpr unsigned int size = sizeof...(Types);
 };
 
+template <typename TL, template <typename...> typename U>
+struct rebind_impl;
+
+template <template <typename...> typename U, typename... Ts>
+struct rebind_impl<TypeList<Ts...>, U> {
+  using type = U<Ts...>;
+};
+
+template <typename TL, template <typename...> typename U>
+using rebind = typename rebind_impl<TL, U>::type;
+
 template <typename TypeList, unsigned int N>
 struct type_at_impl;
 

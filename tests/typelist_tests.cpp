@@ -134,3 +134,13 @@ TEST_CASE("typelist find indizes by constexpr predicate callable", "[meta]") {
   STATIC_REQUIRE(
       std::is_same_v<Idx1, fsm::detail::IntegerSequence<0, 1, 3, 4>>);
 }
+
+template <typename... Ts>
+struct VariadicFooList {};
+
+TEST_CASE("can rebind types to other variadic template", "[meta]") {
+  using TL = fsm::TypeList<int, float, Foo, double, int, char>;
+  using R = fsm::rebind<TL, VariadicFooList>;
+  STATIC_REQUIRE(
+      std::is_same_v<R, VariadicFooList<int, float, Foo, double, int, char>>);
+}
