@@ -16,30 +16,6 @@ template <typename Config>
 using transition_table_from_config =
     typename transition_table_from_config_impl<Config>::type;
 
-template <typename TT, typename State>
-constexpr auto filter_by_state_impl(TT t, State) {
-  using Transitions = typename TT::Transitions;
-  auto idx = find_all_if_callable(Transitions{}, [](auto transition) {
-    using TState = decltype(transition.source());
-    return utils::is_same<TState, State>::value;
-  });
-  return idx;
-}
-
-template <typename TT, typename State>
-using filter_by_state = decltype(filter_by_state_impl(utils::declval<TT>(),
-                                                      utils::declval<State>()));
-
-template <typename State, typename... Ts>
-constexpr auto filter_transitions_by_state(detail::Tuple<Ts...> transitions) {
-  using TL = typename detail::Tuple<Ts...>::TL;
-  auto idx = find_all_if_callable(TL{}, [](auto transition) {
-    using TState = decltype(transition.source());
-    return utils::is_same<TState, State>::value;
-  });
-  return select_by_index(transitions, idx);
-}
-
 template <typename Transitions>
 struct extractStatesImpl {};
 

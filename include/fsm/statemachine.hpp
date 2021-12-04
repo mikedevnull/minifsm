@@ -1,11 +1,10 @@
 #pragma once
 
-#include <fsm/detail/stateholder.hpp>
-#include <fsm/detail/statemachine.hpp>
+#include <fsm/detail/transition_table.hpp>
 
 namespace fsm {
 
-template <typename SMConfig, typename Dep = detail::NoDependency>
+template <typename SMConfig>
 class StateMachine {
   using TransitionTable = detail::transition_table_from_config<SMConfig>;
   using StateList = detail::extractStates_t<TransitionTable>;
@@ -33,7 +32,6 @@ class StateMachine {
           using Source = utils::remove_cvref_t<decltype(currentState)>;
           using Match = detail::matchTransition_t<typename Transitions::TL,
                                                   Source, Event>;
-          // detail::showTheType<Source> x;
           if constexpr (utils::is_same_v<Match, detail::NoMatch>) {
             return;
           } else {

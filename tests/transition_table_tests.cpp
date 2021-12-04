@@ -1,7 +1,5 @@
 
 #include "fsm/detail/meta.hpp"
-#include "fsm/detail/stateholder.hpp"
-#include "fsm/detail/type_utils.hpp"
 #include "fsm/event.hpp"
 #include "fsm/state.hpp"
 #include "fsm/substitutes.hpp"

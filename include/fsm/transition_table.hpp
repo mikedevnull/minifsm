@@ -1,7 +1,11 @@
 #pragma once
+
+#include <fsm/detail/transition_table.hpp>
 #include <fsm/detail/transitions.hpp>
+#include <fsm/detail/tuple.hpp>
 #include <fsm/event.hpp>
 #include <fsm/state.hpp>
+#include <fsm/typelist.hpp>
 
 #include <type_traits>
 namespace fsm {

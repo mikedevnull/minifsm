@@ -146,10 +146,5 @@ void visit(Tuple<Ts...> tuple, unsigned int index, F f) {
   visit_impl<Tuple<Ts...>::size>(index, tuple, f);
 }
 
-template <typename... Ts>
-constexpr auto tuple_from_typelist(TypeList<Ts...>) {
-  return detail::make_tuple(Ts{}...);
-}
-
 }  // namespace detail
 }  // namespace fsm
