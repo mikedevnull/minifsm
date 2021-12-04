@@ -1,5 +1,5 @@
 #pragma once
 
+#include <fsm/dsl.hpp>
 #include <fsm/statemachine.hpp>
-#include <fsm/substitutes.hpp>
-#include <fsm/typelist.hpp>
+#include <fsm/types.hpp>

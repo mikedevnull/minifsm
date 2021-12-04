@@ -2,10 +2,20 @@
 #include <fsm/detail/meta.hpp>
 #include <fsm/detail/transitions.hpp>
 #include <fsm/detail/tuple.hpp>
-#include <fsm/typelist.hpp>
+#include <fsm/detail/typelist.hpp>
 
 namespace fsm {
 namespace detail {
+
+template <typename... Args>
+struct TransitionTable {
+  constexpr explicit TransitionTable(Args &&...args)
+      : transitions(utils::forward<Args>(args)...){};
+  using Transitions = TypeList<Args...>;
+  Tuple<Args...> transitions;
+
+  constexpr auto getTransitions() { return transitions; }
+};
 
 template <typename Config>
 struct transition_table_from_config_impl {
@@ -26,9 +36,9 @@ struct extractStatesImpl<TypeList<Transition, Transitions...>> {
   using TTarget = typename Transition::Target;
 
   using S1 = utils::conditional_t<index_of<S, TSource> == -1,
-                                  fsm::push_back<S, TSource>, S>;
+                                  push_back<S, TSource>, S>;
   using type = utils::conditional_t<index_of<S, TTarget> == -1,
-                                    fsm::push_back<S1, TTarget>, S>;
+                                    push_back<S1, TTarget>, S>;
 };
 
 template <typename Transition>
@@ -36,7 +46,7 @@ struct extractStatesImpl<TypeList<Transition>> {
   using S = TypeList<typename Transition::Source>;
   using type =
       utils::conditional_t<index_of<S, typename Transition::Target> == -1,
-                           fsm::push_back<S, typename Transition::Target>, S>;
+                           push_back<S, typename Transition::Target>, S>;
 };
 
 template <>
@@ -106,5 +116,6 @@ struct extract_context_impl {
 
 template <typename TT>
 using extract_contexts = typename extract_context_impl<TT>::type;
+
 }  // namespace detail
 }  // namespace fsm

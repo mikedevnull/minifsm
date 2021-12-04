@@ -1,17 +1,8 @@
 #pragma once
-#include <fsm/event.hpp>
-#include <fsm/state.hpp>
-#include <fsm/substitutes.hpp>
+#include <fsm/types.hpp>
+#include <fsm/utils/stl_substitutes.hpp>
 
 namespace fsm {
-
-template <typename T>
-struct Context {
-  using type = T;
-};
-
-template <typename C>
-const Context<C> context{};
 
 namespace detail {
 

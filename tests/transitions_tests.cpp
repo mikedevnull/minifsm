@@ -1,4 +1,5 @@
 #include "fsm/detail/transitions.hpp"
+#include "fsm/dsl.hpp"
 
 #include <catch2/catch.hpp>
 #include <type_traits>

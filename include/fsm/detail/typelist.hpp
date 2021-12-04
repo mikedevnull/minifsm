@@ -1,9 +1,11 @@
 #pragma once
 #include <fsm/detail/integer_sequence.hpp>
 #include <fsm/detail/meta.hpp>
-#include <fsm/substitutes.hpp>
+#include <fsm/utils/stl_substitutes.hpp>
 
 namespace fsm {
+
+namespace detail {
 
 template <typename... Types>
 struct TypeList {
@@ -214,5 +216,5 @@ constexpr auto find_all_if_callable(TypeList<Ts...> tl, Pred pred) {
   return find_all_if_callable_impl(detail::IntegerSequence<>{}, pred, tl,
                                    utils::integral_constant<0>{});
 }
-
+}  // namespace detail
 }  // namespace fsm

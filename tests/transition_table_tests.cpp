@@ -1,10 +1,9 @@
 
 #include "fsm/detail/meta.hpp"
-#include "fsm/event.hpp"
-#include "fsm/state.hpp"
-#include "fsm/substitutes.hpp"
-#include "fsm/transition_table.hpp"
-#include "fsm/typelist.hpp"
+#include "fsm/detail/transition_table.hpp"
+#include "fsm/detail/typelist.hpp"
+#include "fsm/dsl.hpp"
+#include "fsm/utils/stl_substitutes.hpp"
 
 #include <catch2/catch.hpp>
 #include <fakeit.hpp>
@@ -53,16 +52,16 @@ TEST_CASE("extract states from transition table") {
   using TT = detail::transition_table_from_config<MyStateMachine>;
   using States = detail::extractStates_t<TT>;
   STATIC_REQUIRE(States::size == 3);
-  STATIC_REQUIRE(has_type<States, Idle>);
-  STATIC_REQUIRE(has_type<States, Working>);
-  STATIC_REQUIRE(has_type<States, Error>);
+  STATIC_REQUIRE(detail::has_type<States, Idle>);
+  STATIC_REQUIRE(detail::has_type<States, Working>);
+  STATIC_REQUIRE(detail::has_type<States, Error>);
 }
 
 TEST_CASE("extract contexts from transition table") {
   using TT = detail::transition_table_from_config<MyStateMachine>;
   using Contexts = detail::extract_contexts<TT>;
   STATIC_REQUIRE(Contexts::size == 1);
-  STATIC_REQUIRE(has_type<Contexts, Foo>);
+  STATIC_REQUIRE(detail::has_type<Contexts, Foo>);
 }
 
 TEST_CASE("default initial state is first source state in table") {

@@ -1,5 +1,4 @@
-#include "fsm/statemachine.hpp"
-#include "fsm/transition_table.hpp"
+#include "fsm/fsm.hpp"
 
 #include <catch2/catch.hpp>
 #include <fakeit.hpp>

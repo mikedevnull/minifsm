@@ -1,6 +1,6 @@
 #pragma once
 #include "fsm/detail/integer_sequence.hpp"
-#include "fsm/typelist.hpp"
+#include "fsm/detail/typelist.hpp"
 
 namespace fsm {
 namespace detail {
@@ -97,14 +97,14 @@ constexpr auto push_front(const Tuple<Ts...>& tuple, T v) {
 }
 
 template <typename T, typename... Ts, auto... Is>
-constexpr auto push_back_impl(const Tuple<Ts...>& tuple, T v,
-                              IntegerSequence<Is...>) {
+constexpr auto push_back_tuple_impl(const Tuple<Ts...>& tuple, T v,
+                                    IntegerSequence<Is...>) {
   return Tuple<Ts..., T>{get<Is>(tuple)..., v};
 }
 
 template <typename T, typename... Ts>
 constexpr auto push_back_tuple(const Tuple<Ts...>& tuple, T v) {
-  return push_back_impl(tuple, v, typename Tuple<Ts...>::Idx{});
+  return push_back_tuple_impl(tuple, v, typename Tuple<Ts...>::Idx{});
 }
 
 template <typename... Args>
