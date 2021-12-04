@@ -162,6 +162,25 @@ template <template <typename> typename Pred, typename TL>
 using find_all_if = decltype(find_all_if_impl<Pred>(
     detail::IntegerSequence<>{}, TL{}, utils::integral_constant<0>{}));
 
+template <typename TL, typename Result>
+struct no_duplicates_impl;
+
+template <typename Result>
+struct no_duplicates_impl<TypeList<>, Result> {
+  using type = Result;
+};
+
+template <typename Result, typename T, typename... Ts>
+struct no_duplicates_impl<TypeList<T, Ts...>, Result> {
+  using type = utils::conditional_t<
+      index_of<Result, T> == -1,
+      typename no_duplicates_impl<TypeList<Ts...>, push_back<Result, T>>::type,
+      typename no_duplicates_impl<TypeList<Ts...>, Result>::type>;
+};
+
+template <typename TL>
+using no_duplicates = typename no_duplicates_impl<TL, TypeList<>>::type;
+
 template <typename Pred, typename Result, auto N, typename... Ts>
 constexpr auto find_all_if_callable_impl(Result result, Pred pred,
                                          TypeList<Ts...>,

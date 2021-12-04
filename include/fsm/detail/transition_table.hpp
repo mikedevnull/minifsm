@@ -1,5 +1,6 @@
 #pragma once
 #include <fsm/detail/meta.hpp>
+#include <fsm/detail/transitions.hpp>
 #include <fsm/detail/tuple.hpp>
 #include <fsm/typelist.hpp>
 
@@ -106,5 +107,28 @@ struct extract_initial_state_impl {
 template <typename TL>
 using extract_initial_state = typename extract_initial_state_impl<TL>::type;
 
+template <typename T>
+struct get_context_from_transition_impl {
+  using type = typename T::Context;
+};
+
+template <typename T>
+using get_context_from_transition = typename T::Context;
+
+template <typename TT>
+struct extract_context_impl {
+ private:
+  template <typename C>
+  struct is_nocontext : utils::is_same<NoContext, C> {};
+
+  using _Contexts =
+      transform<typename TT::Transitions, get_context_from_transition>;
+
+ public:
+  using type = no_duplicates<remove_if<is_nocontext, _Contexts>>;
+};
+
+template <typename TT>
+using extract_contexts = typename extract_context_impl<TT>::type;
 }  // namespace detail
 }  // namespace fsm

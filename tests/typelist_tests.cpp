@@ -72,6 +72,17 @@ TEST_CASE("extract sublist of typelist", "[meta]") {
   STATIC_REQUIRE(TSubZero::size == 0);
 }
 
+TEST_CASE("remove first occurence of type from typelist", "[meta]") {
+  using TL = fsm::TypeList<int, float, std::string, float, double>;
+  using R = fsm::no_duplicates<TL>;
+
+  STATIC_REQUIRE(R::size == 4);
+  STATIC_REQUIRE(fsm::index_of<R, int> == 0);
+  STATIC_REQUIRE(fsm::index_of<R, float> == 1);
+  STATIC_REQUIRE(fsm::index_of<R, std::string> == 2);
+  STATIC_REQUIRE(fsm::index_of<R, double> == 3);
+}
+
 TEST_CASE("remove from typelist with predicate", "[meta]") {
   using TL = fsm::TypeList<int, float, Foo, std::string, double, char>;
   using R = fsm::remove_if<std::is_integral, TL>;
